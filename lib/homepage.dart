@@ -14,6 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List catagory = [
+    'Top news',
     'Econmic',
     'Sports',
     'Entertainment',
@@ -21,13 +22,15 @@ class _HomePageState extends State<HomePage> {
     'Technology'
   ];
 
+  int selectedIndex = 0;
+
   List newsList = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getData();
+    getData(keyWord: 'everything');
   }
 
   @override
@@ -47,6 +50,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           TextField(
+            onSubmitted: (value) {
+              newsList.clear();
+              getData(keyWord: value);
+              setState(() {});
+            },
             decoration: InputDecoration(
                 isDense: true,
                 filled: true,
@@ -77,13 +85,21 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return MaterialButton(
                     minWidth: 80,
-                    color: Colors.deepPurple,
+                    color: selectedIndex == index
+                        ? Colors.deepPurple
+                        : Colors.purple,
                     shape: StadiumBorder(),
                     child: Text(
                       catagory[index],
                       style: TextStyle(color: Colors.white),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      selectedIndex = index;
+                      newsList.clear();
+                      getData(keyWord: catagory[selectedIndex]);
+                      setState(() {});
+                      print(selectedIndex);
+                    },
                   );
                 }),
           ),
@@ -103,6 +119,7 @@ class _HomePageState extends State<HomePage> {
                                         title: newsList[index]['title'],
                                         description: newsList[index]
                                             ['description'],
+                                        url: newsList[index]['url'],
                                         image: newsList[index]['urlToImage'],
                                         date: newsList[index]['publishedAt'],
                                         author: newsList[index]['author'],
@@ -126,10 +143,9 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-  getData() async {
-    var url =
-        'https://newsapi.org/v2/everything?q=bitcoin&apiKey=3b1cd13e09c8414ca9fc804c5fa17abb';
-
+  getData({required String keyWord}) async {
+    String url =
+        'https://newsapi.org/v2/top-headlines?country=us&category=$keyWord&apiKey=$apiKey';
     var resposnse = await http.get(Uri.parse(url));
     var data = jsonDecode(resposnse.body);
     var news = data['articles'];
